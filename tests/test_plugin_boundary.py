@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 import subprocess
 import sys
 import tomllib
@@ -1139,3 +1140,34 @@ print(json.dumps({
         "process_calls": 0,
         "sdk_imported": False,
     }
+
+
+def test_distributed_plugin_passes_install_security_scan(tmp_path: Path) -> None:
+    from tools.plugin_guard import (
+        format_scan_report,
+        scan_plugin,
+        should_allow_plugin_install,
+    )
+
+    package_dir = tmp_path / "plugin"
+    package_dir.mkdir()
+    paths = subprocess.check_output(
+        ["git", "ls-files", "--cached", "--others", "--exclude-standard", "-z"],
+        cwd=PROJECT_ROOT,
+    ).decode().split("\0")
+    for relative_path in paths:
+        if not relative_path:
+            continue
+        source_path = PROJECT_ROOT / relative_path
+        if not source_path.is_file():
+            continue
+        destination = package_dir / relative_path
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(source_path, destination)
+
+    result = scan_plugin(
+        package_dir,
+        source="https://github.com/TrueConf/trueconf-hermes-agent-plugin.git",
+    )
+    allowed, reason = should_allow_plugin_install(result, force=False)
+    assert allowed is True, f"{reason}\n{format_scan_report(result)}"

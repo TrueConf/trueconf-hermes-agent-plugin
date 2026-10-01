@@ -4746,7 +4746,7 @@ async def _group_approval_text_fallback(registered_plugin, monkeypatch) -> None:
     assert await adapter.connect() is True
 
     result = await adapter.send_exec_approval(
-        "group-1", "rm -rf /tmp/x", "session-g", metadata={}
+        "group-1", "echo approval-test", "session-g", metadata={}
     )
     assert result.success is True
     assert len(sends) == 1
