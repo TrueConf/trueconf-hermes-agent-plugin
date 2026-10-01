@@ -19,7 +19,7 @@
 </p>
 
 <p align="center">
-  <img src="assets/poster.png" alt="" width="600" height="auto">
+  <img src="assets/poster.png" alt="" width="800" height="auto">
 </p>
 
 <p align="center">
