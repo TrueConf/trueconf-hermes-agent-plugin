@@ -1,0 +1,47 @@
+[project]
+name = "hermes-agent-trueconf-plugin"
+version = "1.0.0"
+description = "TrueConf messaging platform plugin for Hermes Agent"
+readme = "README.md"
+requires-python = ">=3.11,<3.14"
+license = "BSD-3-Clause-Clear"
+authors = [
+    { name = "Anton Baadzhi" },
+]
+keywords = ["hermes-agent", "messaging", "plugin", "trueconf"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Framework :: AsyncIO",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Typing :: Typed",
+]
+dependencies = [
+    "mistune>=3,<4",
+    "packaging>=24",
+    "python-trueconf-bot>=1.5.0,<2",
+]
+
+[project.urls]
+Repository = "https://github.com/TrueConf/trueconf-hermes-agent-plugin"
+Issues = "https://github.com/TrueConf/trueconf-hermes-agent-plugin/issues"
+
+[dependency-groups]
+dev = [
+    "hermes-agent==0.21.0",
+    "pytest==9.1.1",
+    "ruff==0.15.10",
+    "ty==0.0.21",
+]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py311"

@@ -1,0 +1,26 @@
+# Local reference checkouts and research material. These are inputs to the
+# project, not part of the standalone plugin repository.
+/hermes-agent/
+/hermes-trueconf-adapter/
+/trueconf-hermes-agent/
+/.handoff/
+/plugins.md
+/graphify-out/
+
+# Local operating-system and Python artifacts.
+.DS_Store
+.idea/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.venv/
+dist/
+build/
+*.egg-info/
+
+# Local configuration and credentials.
+.env
+.env.*
+!.env.example

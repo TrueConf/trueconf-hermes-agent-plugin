@@ -1,0 +1,46 @@
+name: trueconf-platform
+label: TrueConf
+kind: platform
+version: 1.0.0
+manifest_version: 1
+api_version: 1
+description: TrueConf messaging platform for Hermes Agent.
+author: Anton Baadzhi
+license: BSD-3-Clause-Clear
+tags:
+  - gateway
+  - messaging
+  - trueconf
+python_dependencies:
+  - mistune>=3,<4
+  - python-trueconf-bot>=1.5.0,<2
+requires_env:
+  - name: TRUECONF_SERVER
+    description: TrueConf Server hostname or address.
+    prompt: TrueConf server
+    password: false
+  - name: TRUECONF_USERNAME
+    description: TrueConf bot account name.
+    prompt: TrueConf username
+    password: false
+  - name: TRUECONF_PASSWORD
+    description: TrueConf bot account password.
+    prompt: TrueConf password
+    secret: true
+  - name: TRUECONF_VERIFY_SSL
+    description: "TLS verification: true (recommended), false for a controlled test server, or a readable CA bundle path."
+    prompt: Verify TrueConf TLS certificate (true/false/CA bundle path)
+    secret: false
+optional_env:
+  - name: TRUECONF_HOME_CHANNEL
+    description: "Exact case-sensitive TrueConf chat ID for scheduled delivery."
+    prompt: TrueConf home target
+    password: false
+  - name: TRUECONF_ALLOWED_USERS
+    description: Comma-separated TrueConf user IDs allowed by Hermes.
+    prompt: Allowed TrueConf users
+    password: false
+  - name: TRUECONF_ALLOW_ALL_USERS
+    description: Explicitly allow every TrueConf user.
+    prompt: Allow all TrueConf users
+    password: false

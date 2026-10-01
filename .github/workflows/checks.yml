@@ -1,0 +1,63 @@
+name: Checks
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: checks-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    env:
+      PYTHONDONTWRITEBYTECODE: "1"
+    steps:
+      - name: Check out the plugin
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      # Tests exercise the real Hermes plugin loader from a clean checkout.
+      - name: Check out Hermes v0.21.0
+        uses: actions/checkout@v7
+        with:
+          repository: NousResearch/hermes-agent
+          ref: 29112bef099274229cadff79cdff7bf7b99c4b77 # v2026.8.31
+          path: hermes-agent
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+        with:
+          enable-cache: false
+
+      - name: Install runtime and development dependencies
+        run: uv pip install --system --editable ./hermes-agent -r pyproject.toml --group dev
+
+      - name: Check code style
+        run: ruff check .
+
+      # Existing type diagnostics are reported without blocking the test gate.
+      - name: Check types (informational)
+        continue-on-error: true
+        run: ty check
+
+      - name: Run tests without a TrueConf Server
+        run: python -m pytest tests -q -p no:cacheprovider
