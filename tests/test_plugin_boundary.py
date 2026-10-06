@@ -24,15 +24,15 @@ def test_pyproject_matches_plugin_runtime_and_release_contract() -> None:
         (PROJECT_ROOT / "plugin.yaml").read_text(encoding="utf-8")
     )
 
-    assert project_data["project"]["version"] == manifest["version"] == "1.0.0"
-    assert project_data["project"]["requires-python"] == ">=3.11,<3.14"
+    assert project_data["project"]["version"] == manifest["version"] == "1.0.1"
+    assert project_data["project"]["requires-python"] == ">=3.11,<3.15"
     assert "python-trueconf-bot>=1.5.0,<2" in project_data["project"]["dependencies"]
     assert "mistune>=3,<4" in project_data["project"]["dependencies"]
     assert manifest["python_dependencies"] == [
         "mistune>=3,<4",
         "python-trueconf-bot>=1.5.0,<2",
     ]
-    assert "hermes-agent==0.21.0" in project_data["dependency-groups"]["dev"]
+    assert "hermes-agent==0.21.0" not in project_data["dependency-groups"]["dev"]
     assert project_data["tool"]["uv"]["package"] is False
     assert project_data["tool"]["pytest"]["ini_options"]["testpaths"] == ["tests"]
 
@@ -372,6 +372,7 @@ print(json.dumps({
             }
         ],
     }
+
 
 
 def test_outdated_sdk_is_reported_as_unavailable(tmp_path: Path) -> None:
@@ -1151,10 +1152,14 @@ def test_distributed_plugin_passes_install_security_scan(tmp_path: Path) -> None
 
     package_dir = tmp_path / "plugin"
     package_dir.mkdir()
-    paths = subprocess.check_output(
-        ["git", "ls-files", "--cached", "--others", "--exclude-standard", "-z"],
-        cwd=PROJECT_ROOT,
-    ).decode().split("\0")
+    paths = (
+        subprocess.check_output(
+            ["git", "ls-files", "--cached", "--others", "--exclude-standard", "-z"],
+            cwd=PROJECT_ROOT,
+        )
+        .decode()
+        .split("\0")
+    )
     for relative_path in paths:
         if not relative_path:
             continue

@@ -1,7 +1,7 @@
 name: trueconf-platform
 label: TrueConf
 kind: platform
-version: 1.0.0
+version: 1.0.1
 manifest_version: 1
 api_version: 1
 description: TrueConf messaging platform for Hermes Agent.

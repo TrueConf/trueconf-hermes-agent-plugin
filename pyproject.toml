@@ -32,7 +32,6 @@ Issues = "https://github.com/TrueConf/trueconf-hermes-agent-plugin/issues"
 
 [dependency-groups]
 dev = [
-    "hermes-agent==0.21.0",
     "pytest==9.1.1",
     "ruff==0.15.10",
     "ty==0.0.21",
