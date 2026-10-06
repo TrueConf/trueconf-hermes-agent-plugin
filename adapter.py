@@ -10,8 +10,9 @@ import sys
 import unicodedata
 import uuid
 from collections import OrderedDict
+from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, ClassVar
 
 from gateway.config import Platform
 from gateway.platforms.base import (
@@ -65,6 +66,22 @@ _MAX_STATUS_MESSAGES = 256
 _TRUE_CONF_MESSAGE_LIMIT = 4096
 
 
+@dataclass(frozen=True)
+class _ExecApprovalPromptView:
+    """Hermes 0.21.x has no ``ExecApprovalPrompt``; the fallback approval path
+    builds this compatible view for ``_send_exec_approval_prompt``.
+
+    TODO(trueconf): drop this class together with the 0.21.x branch in
+    ``send_exec_approval`` once the minimum supported Hermes exceeds 0.21.5.
+    """
+
+    chat_id: str
+    session_key: str
+    text: str
+    actions: list[tuple[str, str, Any]]
+    metadata: dict[str, Any] | None = None
+
+
 def _split_safe_chunks(html: str) -> list[str]:
     """Split rendered HTML into SDK-valid chunks of at most 4096 visible chars.
 
@@ -92,6 +109,11 @@ class TrueConfAdapter(BasePlatformAdapter):
     splits_long_messages = True
     # The formatter renders fenced code blocks as multi-line <i> blocks.
     supports_code_blocks = True
+    # Hermes exec-approval action styles (``primary``/``danger``/``""``) → TrueConf buttons.
+    _EA_BUTTON_STYLES: ClassVar[dict[str, ButtonStyle]] = {
+        "primary": ButtonStyle.PRIMARY,
+        "danger": ButtonStyle.DANGER,
+    }
     MAX_MESSAGE_LENGTH = _TRUE_CONF_MESSAGE_LIMIT
 
     def __init__(self, config: Any):
@@ -445,28 +467,68 @@ class TrueConfAdapter(BasePlatformAdapter):
         allow_session: bool = True,
         smart_denied: bool = False,
     ) -> SendResult:
-        """Render Hermes' dangerous-command approval as TrueConf buttons."""
+        """Render Hermes' dangerous-command approval as TrueConf buttons.
+
+        Newer Hermes assembles the prompt (localized text, redaction, action rows) in
+        ``BasePlatformAdapter.send_exec_approval`` and delegates rendering to
+        ``_send_exec_approval_prompt`` — the override its
+        ``supports_exec_approval_buttons`` capability check looks for. Hermes 0.21.x
+        has no base implementation, so the prompt is assembled here.
+        """
+        base_send = getattr(super(), "send_exec_approval", None)
+        if base_send is not None:
+            return await base_send(
+                chat_id=chat_id,
+                command=command,
+                session_key=session_key,
+                description=description,
+                metadata=metadata,
+                allow_permanent=allow_permanent,
+                allow_session=allow_session,
+                smart_denied=smart_denied,
+            )
         choices = [("Allow once", "once", ButtonStyle.SUCCESS)]
         if allow_session:
             choices.append(("Allow session", "session", ButtonStyle.SUCCESS))
         if allow_permanent:
             choices.append(("Always allow", "always", ButtonStyle.SUCCESS))
         choices.append(("Deny", "deny", ButtonStyle.DANGER))
-        request_id = self._next_button_id("approval")
         command_block = self.format_message(f"```\n{command}\n```")
         text = f"<b>Command approval required</b><br><br>{command_block}"
         if description:
             text += f"<br><br>Reason: {self.format_message(description)}"
         if smart_denied:
             text += "<br><br>The command was blocked by the safety policy."
-        return await self._send_button_prompt(
+        prompt = _ExecApprovalPromptView(
             chat_id=chat_id,
-            text=text,
-            kind="approval",
-            request_id=request_id,
             session_key=session_key,
-            choices=choices,
+            text=text,
+            actions=choices,
             metadata=metadata,
+        )
+        return await self._send_exec_approval_prompt(prompt)
+
+    async def _send_exec_approval_prompt(self, prompt: Any) -> SendResult:
+        """Render an exec-approval prompt with TrueConf buttons.
+
+        Hermes routes every approval through this hook on newer versions: its
+        ``supports_exec_approval_buttons`` capability check treats the adapter as
+        button-capable only when this method overrides the base implementation.
+        A press resolves via ``tools.approval.resolve_gateway_approval`` — the
+        same API the button click handler already uses.
+        """
+        choices = [
+            (label, choice, self._EA_BUTTON_STYLES.get(style, ButtonStyle.SUCCESS))
+            for label, choice, style in prompt.actions
+        ]
+        return await self._send_button_prompt(
+            chat_id=prompt.chat_id,
+            text=prompt.text,
+            kind="approval",
+            request_id=self._next_button_id("approval"),
+            session_key=prompt.session_key,
+            choices=choices,
+            metadata=prompt.metadata,
         )
 
     async def send_slash_confirm(

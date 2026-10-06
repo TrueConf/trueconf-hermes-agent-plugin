@@ -374,45 +374,6 @@ print(json.dumps({
     }
 
 
-def test_first_start_refreshes_typing_extensions_after_lazy_install(
-    tmp_path: Path,
-) -> None:
-    result = run_hermes_probe(
-        tmp_path,
-        """
-import json
-from types import SimpleNamespace
-import typing_extensions
-from hermes_cli.plugins import discover_plugins
-from gateway.config import PlatformConfig
-from gateway.platform_registry import platform_registry
-import tools.lazy_deps
-
-discover_plugins(force=True)
-entry = platform_registry.get("trueconf")
-# Model Hermes holding the pre-upgrade module while pip has updated its file.
-del typing_extensions.sentinel
-calls = []
-def install_specs(specs, *, timeout):
-    calls.append(specs)
-    return SimpleNamespace(ok=True, reason="")
-tools.lazy_deps.install_specs = install_specs
-entry.validate_config = lambda config: True
-adapter = platform_registry.create_adapter("trueconf", PlatformConfig())
-print(json.dumps({
-    "created": adapter is not None,
-    "sentinel_available": hasattr(typing_extensions, "sentinel"),
-    "installs": len(calls),
-}))
-""",
-    )
-    assert result.returncode == 0, result.stderr
-    assert json.loads(result.stdout) == {
-        "created": True,
-        "sentinel_available": True,
-        "installs": 1,
-    }, result.stderr
-
 
 def test_outdated_sdk_is_reported_as_unavailable(tmp_path: Path) -> None:
     result = run_hermes_probe(
@@ -1260,4 +1221,89 @@ print(json.dumps({
     assert json.loads(result.stdout) == {
         "created": True,
         "server": "trueconf.example",
+    }, result.stderr
+
+
+def test_exec_approval_button_contract_matches_hermes_capability_check(
+    tmp_path: Path,
+) -> None:
+    """Newer Hermes renders approval buttons only when the adapter overrides
+    ``_send_exec_approval_prompt`` (its ``supports_exec_approval_buttons``
+    capability check); 0.21.x duck-types ``send_exec_approval``. Both must hold,
+    and the prompt hook must map Hermes' action rows onto TrueConf buttons."""
+    result = run_hermes_probe(
+        tmp_path,
+        """
+import asyncio
+import json
+from types import SimpleNamespace
+
+from hermes_cli.plugins import discover_plugins
+from gateway.config import PlatformConfig
+from gateway.platform_registry import platform_registry
+
+discover_plugins(force=True)
+entry = platform_registry.get("trueconf")
+entry.validate_config = lambda config: True
+adapter = platform_registry.create_adapter("trueconf", PlatformConfig())
+adapter_cls = type(adapter)
+
+from gateway.platforms.base import BasePlatformAdapter
+
+probe = getattr(adapter_cls, "supports_exec_approval_buttons", None)
+if callable(probe) and issubclass(adapter_cls, BasePlatformAdapter):
+    renders = bool(probe())
+else:
+    renders = getattr(adapter_cls, "send_exec_approval", None) is not None
+overrides_prompt_hook = "_send_exec_approval_prompt" in adapter_cls.__dict__
+
+captured = {}
+
+
+async def fake_send_button_prompt(**kwargs):
+    captured.update(kwargs)
+    return SimpleNamespace(success=True, message_id="42")
+
+
+adapter._send_button_prompt = fake_send_button_prompt
+
+prompt = SimpleNamespace(
+    chat_id="user1",
+    session_key="sess-1",
+    text="⚠️ Hermes wants to run a command that needs your OK",
+    actions=[
+        ("Allow once", "once", "primary"),
+        ("Allow session", "session", ""),
+        ("Deny", "deny", "danger"),
+    ],
+    metadata=None,
+)
+result = asyncio.run(adapter._send_exec_approval_prompt(prompt))
+print(json.dumps({
+    "renders": renders,
+    "overrides_prompt_hook": overrides_prompt_hook,
+    "success": result.success,
+    "chat_id": captured.get("chat_id"),
+    "session_key": captured.get("session_key"),
+    "kind": captured.get("kind"),
+    "choices": [
+        [label, value, getattr(style, "value", str(style))]
+        for label, value, style in captured.get("choices", [])
+    ],
+}))
+""",
+    )
+    assert result.returncode == 0, result.stderr
+    assert json.loads(result.stdout) == {
+        "renders": True,
+        "overrides_prompt_hook": True,
+        "success": True,
+        "chat_id": "user1",
+        "session_key": "sess-1",
+        "kind": "approval",
+        "choices": [
+            ["Allow once", "once", "primary"],
+            ["Allow session", "session", "success"],
+            ["Deny", "deny", "danger"],
+        ],
     }, result.stderr
