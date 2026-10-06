@@ -8,7 +8,6 @@ import sys
 import tomllib
 from pathlib import Path
 
-
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 HERMES_ROOT = PROJECT_ROOT / "hermes-agent"
 MINIMUM_SDK_VERSION = "1.5.3"

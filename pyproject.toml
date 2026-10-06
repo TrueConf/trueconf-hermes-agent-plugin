@@ -45,3 +45,19 @@ testpaths = ["tests"]
 
 [tool.ruff]
 target-version = "py311"
+# Match the python-trueconf-bot formatting budget.
+line-length = 120
+
+[tool.ruff.lint]
+# Match the python-trueconf-bot rule set; pinned explicitly so ruff's shifting
+# implicit defaults (0.16 jumped from ~120 to ~800 rules) cannot move it.
+select = ["E", "F", "W", "I", "C90", "B", "BLE", "ERA", "UP007", "UP045", "RUF", "SIM", "C4", "ASYNC", "N", "A", "PT"]
+# Test strings intentionally mix look-alike Cyrillic/Latin letters.
+allowed-confusables = ["с", "а", "е", "о", "р", "х"]
+
+[tool.ruff.lint.per-file-ignores]
+# Ratchet baseline (same pattern as hermes-agent): each entry is an EXISTING
+# violation being fixed in its own change; do not add new files here.
+"__init__.py" = ["C901", "N999"]
+"adapter.py" = ["BLE001", "C901"]
+"tests/**" = ["ASYNC240"]

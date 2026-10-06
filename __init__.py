@@ -11,7 +11,6 @@ from typing import Any
 
 from packaging.version import InvalidVersion, Version
 
-
 MINIMUM_SDK_VERSION = "1.5.3"
 MAXIMUM_SDK_VERSION = "2"
 SDK_REQUIREMENT = "python-trueconf-bot>=1.5.3,<2"
@@ -65,11 +64,7 @@ def _mistune_available() -> bool:
         return False
     try:
         installed = Version(version("mistune"))
-        return (
-            Version(MINIMUM_MISTUNE_VERSION)
-            <= installed
-            < Version(MAXIMUM_MISTUNE_VERSION)
-        )
+        return Version(MINIMUM_MISTUNE_VERSION) <= installed < Version(MAXIMUM_MISTUNE_VERSION)
     except (InvalidVersion, PackageNotFoundError):
         return False
 
@@ -103,8 +98,7 @@ def _ensure_runtime_dependencies() -> bool:
 
     if not _runtime_dependencies_available():
         _LOGGER.warning(
-            "TrueConf Plugin dependency installation completed, but %s "
-            "is still unavailable",
+            "TrueConf Plugin dependency installation completed, but %s is still unavailable",
             ", ".join(PLUGIN_REQUIREMENTS),
         )
         return False
@@ -150,8 +144,7 @@ def _env_enablement() -> dict[str, Any] | None:
     if _parse_target_ref(home_target) is not None:
         seed["home_channel"] = {
             "chat_id": home_target,
-            "name": _get_secret("TRUECONF_HOME_CHANNEL_NAME", "TrueConf home")
-            or "TrueConf home",
+            "name": _get_secret("TRUECONF_HOME_CHANNEL_NAME", "TrueConf home") or "TrueConf home",
         }
     return seed
 
@@ -163,22 +156,12 @@ def _apply_yaml_config(
     """Expose TrueConf-owned YAML fields as ``PlatformConfig.extra`` values."""
 
     if isinstance(yaml_config.get("trueconf"), dict):
-        return {
-            _CONFIG_ERROR_KEY: (
-                "move the top-level trueconf block to platforms.trueconf"
-            )
-        }
+        return {_CONFIG_ERROR_KEY: ("move the top-level trueconf block to platforms.trueconf")}
 
     platforms = yaml_config.get("platforms")
-    canonical_config = (
-        platforms.get("trueconf") if isinstance(platforms, dict) else None
-    )
+    canonical_config = platforms.get("trueconf") if isinstance(platforms, dict) else None
     if not isinstance(canonical_config, dict):
-        return {
-            _CONFIG_ERROR_KEY: (
-                "TrueConf settings must be configured under platforms.trueconf"
-            )
-        }
+        return {_CONFIG_ERROR_KEY: ("TrueConf settings must be configured under platforms.trueconf")}
     platform_config = canonical_config
 
     supported = (
@@ -206,9 +189,7 @@ def _apply_yaml_config(
         else:
             home_target = home_channel.get("chat_id")
             if _parse_target_ref(home_target) is None:
-                seeded[_CONFIG_ERROR_KEY] = (
-                    "home_channel.chat_id must be a non-empty TrueConf chat ID"
-                )
+                seeded[_CONFIG_ERROR_KEY] = "home_channel.chat_id must be a non-empty TrueConf chat ID"
             elif not os.getenv("TRUECONF_HOME_CHANNEL"):
                 os.environ["TRUECONF_HOME_CHANNEL"] = home_target
                 home_name = home_channel.get("name")
@@ -216,10 +197,7 @@ def _apply_yaml_config(
                     os.environ.setdefault("TRUECONF_HOME_CHANNEL_NAME", home_name)
 
     if "password" in platform_config:
-        seeded[_CONFIG_ERROR_KEY] = (
-            "password must be provided through the secret environment/store, "
-            "not config.yaml"
-        )
+        seeded[_CONFIG_ERROR_KEY] = "password must be provided through the secret environment/store, not config.yaml"
     if isinstance(seeded.get("parse_mode"), str):
         seeded["parse_mode"] = seeded["parse_mode"].lower()
     return seeded or None
@@ -247,14 +225,7 @@ def _config_error(config: Any) -> str | None:
     if not isinstance(server_value, str):
         return "server must be a string"
     server = server_value.strip()
-    if (
-        not server
-        or server != server_value
-        or "://" in server
-        or "/" in server
-        or "?" in server
-        or "#" in server
-    ):
+    if not server or server != server_value or "://" in server or "/" in server or "?" in server or "#" in server:
         return "server must be a non-empty hostname/address without a scheme or path"
 
     username = _get_secret("TRUECONF_USERNAME", "")
@@ -271,11 +242,10 @@ def _config_error(config: Any) -> str | None:
         return "https must be a boolean"
 
     verify_ssl = extra.get("verify_ssl", True)
-    if not isinstance(verify_ssl, bool):
-        if not isinstance(verify_ssl, str) or not (
-            os.path.isfile(verify_ssl) and os.access(verify_ssl, os.R_OK)
-        ):
-            return "verify_ssl must be a boolean or a readable CA bundle path"
+    if not isinstance(verify_ssl, bool) and (
+        not isinstance(verify_ssl, str) or not (os.path.isfile(verify_ssl) and os.access(verify_ssl, os.R_OK))
+    ):
+        return "verify_ssl must be a boolean or a readable CA bundle path"
 
     parse_mode = extra.get("parse_mode", "html")
     if not isinstance(parse_mode, str) or parse_mode.lower() != "html":
@@ -311,9 +281,7 @@ def _config_error(config: Any) -> str | None:
         if field not in extra:
             continue
         values = extra[field]
-        if not isinstance(values, list) or any(
-            not isinstance(value, str) or not value.strip() for value in values
-        ):
+        if not isinstance(values, list) or any(not isinstance(value, str) or not value.strip() for value in values):
             return f"{field} must be a list of non-empty string IDs"
 
     home_channel = getattr(config, "home_channel", None)
@@ -387,10 +355,7 @@ def _interactive_setup() -> None:
     existing_username = get_env_value("TRUECONF_USERNAME") or ""
     existing_password = get_env_value("TRUECONF_PASSWORD") or ""
     if existing_server and existing_username and existing_password:
-        print_info(
-            f"TrueConf is already configured for {existing_username} on "
-            f"{existing_server}."
-        )
+        print_info(f"TrueConf is already configured for {existing_username} on {existing_server}.")
         if not prompt_yes_no("Reconfigure TrueConf?", False):
             return
 
@@ -411,11 +376,7 @@ def _interactive_setup() -> None:
         print_warning("Bot account name is required — setup cancelled")
         return
 
-    password_label = (
-        "Bot password (leave blank to keep the saved password)"
-        if existing_password
-        else "Bot password"
-    )
+    password_label = "Bot password (leave blank to keep the saved password)" if existing_password else "Bot password"
     entered_password = prompt(password_label, default="", password=True)
     password = entered_password or existing_password
     if not password:
@@ -454,9 +415,7 @@ def _interactive_setup() -> None:
             default=get_env_value("TRUECONF_ALLOWED_USERS") or "",
         ).strip()
         if allowed_users:
-            normalized_users = ",".join(
-                value.strip() for value in allowed_users.split(",") if value.strip()
-            )
+            normalized_users = ",".join(value.strip() for value in allowed_users.split(",") if value.strip())
             save_env_value("TRUECONF_ALLOWED_USERS", normalized_users)
         else:
             remove_env_value("TRUECONF_ALLOWED_USERS")
@@ -513,8 +472,7 @@ async def _standalone_send(
     def failure(result: Any) -> dict[str, Any]:
         return with_partial_delivery(
             {
-                "error": result.error
-                or f"TrueConf standalone send failed on {adapter.server}",
+                "error": result.error or f"TrueConf standalone send failed on {adapter.server}",
                 "error_kind": result.error_kind or "unknown",
                 "retryable": result.retryable,
             }
@@ -523,8 +481,7 @@ async def _standalone_send(
     try:
         if not await adapter.connect():
             return {
-                "error": adapter.fatal_error_message
-                or f"TrueConf standalone connection failed on {adapter.server}",
+                "error": adapter.fatal_error_message or f"TrueConf standalone connection failed on {adapter.server}",
                 "error_kind": adapter.fatal_error_code or "transient",
                 "retryable": adapter.fatal_error_retryable,
             }
@@ -533,9 +490,7 @@ async def _standalone_send(
             last_result = await adapter.send(chat_id, message)
             if not last_result.success:
                 return failure(last_result)
-            for mid in list(last_result.continuation_message_ids) + [
-                last_result.message_id
-            ]:
+            for mid in [*last_result.continuation_message_ids, last_result.message_id]:
                 if mid is not None:
                     delivered_message_ids.append(str(mid))
 
@@ -543,10 +498,7 @@ async def _standalone_send(
             if not isinstance(descriptor, (list, tuple)) or not descriptor:
                 return with_partial_delivery(
                     {
-                        "error": (
-                            f"TrueConf standalone media descriptor {index + 1} "
-                            "is invalid"
-                        ),
+                        "error": (f"TrueConf standalone media descriptor {index + 1} is invalid"),
                         "error_kind": "unknown",
                         "retryable": False,
                     }
@@ -555,10 +507,7 @@ async def _standalone_send(
             if not isinstance(file_path, str) or not file_path:
                 return with_partial_delivery(
                     {
-                        "error": (
-                            f"TrueConf standalone media descriptor {index + 1} "
-                            "is invalid"
-                        ),
+                        "error": (f"TrueConf standalone media descriptor {index + 1} is invalid"),
                         "error_kind": "unknown",
                         "retryable": False,
                     }

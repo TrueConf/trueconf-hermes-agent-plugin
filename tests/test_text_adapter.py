@@ -229,9 +229,7 @@ async def _long_running_turn_keeps_typing(
     assert await adapter.connect() is True
 
     stop = asyncio.Event()
-    typing_task = asyncio.create_task(
-        adapter._keep_typing("Slow-Chat", interval=0.02, stop_event=stop)
-    )
+    typing_task = asyncio.create_task(adapter._keep_typing("Slow-Chat", interval=0.02, stop_event=stop))
     await asyncio.wait_for(visible.wait(), timeout=0.2)
 
     assert typing_task.done() is False
@@ -317,9 +315,7 @@ async def _connect_waits_for_authorization(
     assert not [
         task
         for task in asyncio.all_tasks()
-        if task is not asyncio.current_task()
-        and task.get_name().startswith("trueconf-")
-        and not task.done()
+        if task is not asyncio.current_task() and task.get_name().startswith("trueconf-") and not task.done()
     ]
 
 
@@ -389,9 +385,7 @@ async def _inbound_p2p_text(
         chat=_sdk_chat("Chat-ID-AbC", title="Private chat"),
         timestamp=1_787_000_000_000,
         type=MessageType.PLAIN_MESSAGE,
-        author=EnvelopeAuthor(
-            id="hermes-bot@video.example.com", type=EnvelopeAuthorType.USER
-        ),
+        author=EnvelopeAuthor(id="hermes-bot@video.example.com", type=EnvelopeAuthorType.USER),
         box=EnvelopeBox(id=6, position="inbox"),
         content=TextContent(
             text="Поехали — запускаю задачу на ~30 секунд, наблюдайте за чатом:",
@@ -422,9 +416,7 @@ async def _inbound_p2p_text(
     assert event.user_name == "Alice"
     assert event.message_id == "message-17"
     assert event.reply_to_message_id == "message-9"
-    assert event.reply_to_text == (
-        "Поехали — запускаю задачу на ~30 секунд, наблюдайте за чатом:"
-    )
+    assert event.reply_to_text == ("Поехали — запускаю задачу на ~30 секунд, наблюдайте за чатом:")
     assert event.reply_to_author_id == "hermes-bot@video.example.com"
     assert event.reply_to_is_own_message is True
     assert event.source.platform.value == "trueconf"
@@ -443,18 +435,14 @@ def test_inbound_reply_id_without_embedded_message_keeps_id_only(
     registered_plugin,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    asyncio.run(
-        _inbound_reply_id_without_embedded_message(registered_plugin, monkeypatch)
-    )
+    asyncio.run(_inbound_reply_id_without_embedded_message(registered_plugin, monkeypatch))
 
 
 def test_inbound_partial_quote_uses_selected_fragment(
     registered_plugin,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    asyncio.run(
-        _inbound_partial_quote_uses_selected_fragment(registered_plugin, monkeypatch)
-    )
+    asyncio.run(_inbound_partial_quote_uses_selected_fragment(registered_plugin, monkeypatch))
 
 
 async def _inbound_partial_quote_uses_selected_fragment(
@@ -501,15 +489,10 @@ async def _inbound_partial_quote_uses_selected_fragment(
         chat=_sdk_chat("Chat-ID-AbC", title="Private chat"),
         timestamp=1_788_000_000_123,
         type=MessageType.PLAIN_MESSAGE,
-        author=EnvelopeAuthor(
-            id="alice@video.example.com", type=EnvelopeAuthorType.USER
-        ),
+        author=EnvelopeAuthor(id="alice@video.example.com", type=EnvelopeAuthorType.USER),
         box=EnvelopeBox(id=7, position="inbox"),
         content=TextContent(
-            text=(
-                '<quote class="reply">Пункт B: ротация ключей.</quote>'
-                "<br><br>Сделай это сегодня"
-            ),
+            text=('<quote class="reply">Пункт B: ротация ключей.</quote><br><br>Сделай это сегодня'),
             parse_mode="html",
         ),
         message_id="message-17",
@@ -630,9 +613,7 @@ async def _inbound_reply_from_different_chat(
         chat=_sdk_chat("Other-Chat", title="Other chat"),
         timestamp=1_787_000_000_000,
         type=MessageType.PLAIN_MESSAGE,
-        author=EnvelopeAuthor(
-            id="hermes-bot@video.example.com", type=EnvelopeAuthorType.USER
-        ),
+        author=EnvelopeAuthor(id="hermes-bot@video.example.com", type=EnvelopeAuthorType.USER),
         box=EnvelopeBox(id=6, position="inbox"),
         content=TextContent(text="different chat text", parse_mode="text"),
         message_id="message-9",
@@ -700,9 +681,7 @@ async def _unauthorized_inbound(
     install_bot(monkeypatch, bot)
     adapter = create_adapter(registered_plugin)
     authorization_calls = []
-    adapter.set_authorization_check(
-        lambda user, kind, chat: authorization_calls.append((user, kind, chat)) or False
-    )
+    adapter.set_authorization_check(lambda user, kind, chat: authorization_calls.append((user, kind, chat)) or False)
     events = []
     delivered = asyncio.Event()
 
@@ -997,9 +976,7 @@ def test_interactive_setup_saves_trueconf_connection_access_and_home(
     monkeypatch.setattr(
         cli_config,
         "write_platform_config_field",
-        lambda platform, field, value, *, raw=False: config_writes.append(
-            (platform, field, value, raw)
-        ),
+        lambda platform, field, value, *, raw=False: config_writes.append((platform, field, value, raw)),
     )
     monkeypatch.setattr(
         cli_config,
@@ -1137,8 +1114,7 @@ async def _standalone_rejects_incomplete_config_before_adapter_creation(
 
     assert result == {
         "error": (
-            "TrueConf configuration invalid: server must be a non-empty "
-            "hostname/address without a scheme or path"
+            "TrueConf configuration invalid: server must be a non-empty hostname/address without a scheme or path"
         ),
         "error_kind": "unknown",
         "retryable": False,
@@ -1195,9 +1171,7 @@ async def _standalone_text_delivery(
     assert not [
         task
         for task in asyncio.all_tasks()
-        if task is not asyncio.current_task()
-        and task.get_name().startswith("trueconf-")
-        and not task.done()
+        if task is not asyncio.current_task() and task.get_name().startswith("trueconf-") and not task.done()
     ]
 
 
@@ -1447,9 +1421,7 @@ async def _standalone_cancellation(registered_plugin, monkeypatch) -> None:
     assert not [
         pending
         for pending in asyncio.all_tasks()
-        if pending is not asyncio.current_task()
-        and pending.get_name().startswith("trueconf-")
-        and not pending.done()
+        if pending is not asyncio.current_task() and pending.get_name().startswith("trueconf-") and not pending.done()
     ]
 
 
@@ -1521,8 +1493,8 @@ def test_public_hermes_send_uses_standalone_trueconf_without_gateway_adapter(
     registered_plugin,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    from trueconf.types.responses.send_message_response import SendMessageResponse
     from tools.send_message_tool import send_message_tool
+    from trueconf.types.responses.send_message_response import SendMessageResponse
 
     monkeypatch.setenv("TRUECONF_USERNAME", "bot")
     monkeypatch.setenv("TRUECONF_PASSWORD", "secret")
@@ -1560,9 +1532,9 @@ def test_public_hermes_send_delivers_media_through_standalone_trueconf(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
+    from tools.send_message_tool import send_message_tool
     from trueconf.types.responses.send_file_response import SendFileResponse
     from trueconf.types.responses.send_message_response import SendMessageResponse
-    from tools.send_message_tool import send_message_tool
 
     monkeypatch.setenv("TRUECONF_USERNAME", "bot")
     monkeypatch.setenv("TRUECONF_PASSWORD", "secret")
@@ -1703,9 +1675,7 @@ async def _html_send_uses_sdk_line_break_and_native_markup(
     )
 
     assert result.success is True
-    assert sent[0]["text"] == (
-        "Install <b>mcp</b> in the runtime.<br>Restart the agent."
-    )
+    assert sent[0]["text"] == ("Install <b>mcp</b> in the runtime.<br>Restart the agent.")
     assert sent[0]["parse_mode"] is ParseMode.HTML
     assert adapter.format_message("first\nsecond") == "first<br>second"
     await adapter.disconnect()
@@ -1770,10 +1740,7 @@ async def _edit_failure_classification(
     assert await adapter.connect() is True
 
     contents = ["deleted", "forbidden", "transient", "unknown", "x" * 4097]
-    results = [
-        await adapter.edit_message("chat", "message-42", content)
-        for content in contents
-    ]
+    results = [await adapter.edit_message("chat", "message-42", content) for content in contents]
 
     assert [(result.error_kind, result.retryable) for result in results] == [
         ("not_found", False),
@@ -1784,13 +1751,11 @@ async def _edit_failure_classification(
     ]
     assert all(result.message_id is None for result in results)
     assert all("TrueConf edit failed" in (result.error or "") for result in results)
-    assert all(
-        "private remote detail" not in (result.error or "") for result in results
-    )
+    assert all("private remote detail" not in (result.error or "") for result in results)
     # The oversized edit is split before the SDK call, so the head chunk (4096
     # visible chars) is what reaches the SDK; the SDK rejection is still
     # classified as too_long without retrying.
-    assert [call["text"] for call in calls] == contents[:-1] + ["x" * 4096]
+    assert [call["text"] for call in calls] == [*contents[:-1], "x" * 4096]
     assert len(calls) == len(contents)
     await adapter.disconnect()
 
@@ -1879,9 +1844,7 @@ async def _send_failures_and_cancellation(
     assert await adapter.connect() is True
 
     results = [await adapter.send("chat", "text") for _ in range(6)]
-    assert [
-        (result.error_kind, result.retryable, result.message_id) for result in results
-    ] == [
+    assert [(result.error_kind, result.retryable, result.message_id) for result in results] == [
         ("too_long", False, None),
         ("forbidden", False, None),
         ("not_found", False, None),
@@ -1889,9 +1852,7 @@ async def _send_failures_and_cancellation(
         ("transient", True, None),
         ("unknown", False, None),
     ]
-    assert all(
-        "unexpected secret detail" not in (result.error or "") for result in results
-    )
+    assert all("unexpected secret detail" not in (result.error or "") for result in results)
 
     send_started = asyncio.Event()
 
@@ -1976,9 +1937,7 @@ async def _sdk_loop_exit(
     fatal_states = []
 
     async def on_fatal(failed_adapter):
-        fatal_states.append(
-            (failed_adapter.fatal_error_code, failed_adapter.fatal_error_retryable)
-        )
+        fatal_states.append((failed_adapter.fatal_error_code, failed_adapter.fatal_error_retryable))
         notified.set()
 
     adapter.set_fatal_error_handler(on_fatal)
@@ -2079,9 +2038,7 @@ def _sdk_forwarded_message(
         chat=_sdk_chat("Original-Chat", title="Original chat"),
         timestamp=1_787_000_000_123,
         type=MessageType.PLAIN_MESSAGE,
-        author=EnvelopeAuthor(
-            id="original@video.example", type=EnvelopeAuthorType.USER
-        ),
+        author=EnvelopeAuthor(id="original@video.example", type=EnvelopeAuthorType.USER),
         box=EnvelopeBox(id=6, position="inbox"),
         content=TextContent(text=text, parse_mode="text"),
         message_id="original-message",
@@ -2195,8 +2152,7 @@ def _sdk_voice_message(
 
 
 _ONE_PIXEL_PNG = base64.b64decode(
-    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUB"
-    "AScY42YAAAAASUVORK5CYII="
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII="
 )
 
 
@@ -2442,14 +2398,11 @@ def test_inbound_document_policy_and_failures_never_expose_untrusted_bytes(
     asyncio.run(_inbound_document_failures(registered_plugin, monkeypatch, tmp_path))
 
 
-async def _inbound_document_failures(
-    registered_plugin, monkeypatch, tmp_path: Path
-) -> None:
+async def _inbound_document_failures(registered_plugin, monkeypatch, tmp_path: Path) -> None:
     monkeypatch.setenv("TRUECONF_USERNAME", "bot")
     monkeypatch.setenv("TRUECONF_PASSWORD", "secret")
     (tmp_path / "hermes-home" / "config.yaml").write_text(
-        "plugins:\n  enabled:\n    - trueconf-platform\n"
-        "gateway:\n  max_inbound_media_bytes: 8\n",
+        "plugins:\n  enabled:\n    - trueconf-platform\ngateway:\n  max_inbound_media_bytes: 8\n",
         encoding="utf-8",
     )
     sdk_handler = _capture_public_sdk_message_handler(monkeypatch)
@@ -2473,9 +2426,7 @@ async def _inbound_document_failures(
     bot.download_file_by_id = download_file_by_id
     install_bot(monkeypatch, bot)
     adapter = create_adapter(registered_plugin)
-    adapter.set_authorization_check(
-        lambda user, _kind, _chat: user != "unauthorized@video.example.com"
-    )
+    adapter.set_authorization_check(lambda user, _kind, _chat: user != "unauthorized@video.example.com")
     delivered = asyncio.Event()
     events = []
 
@@ -2511,9 +2462,7 @@ async def _inbound_document_failures(
             "application/octet-stream",
         ),
     ]
-    for index, (author_id, file_id, file_name, file_size, mime_type) in enumerate(
-        cases
-    ):
+    for index, (author_id, file_id, file_name, file_size, mime_type) in enumerate(cases):
         await sdk_handler["handler"](
             _sdk_attachment_message(
                 bot,
@@ -2548,9 +2497,7 @@ def test_outbound_document_failures_and_cancellation_preserve_caller_file(
     asyncio.run(_outbound_document_failures(registered_plugin, monkeypatch, tmp_path))
 
 
-async def _outbound_document_failures(
-    registered_plugin, monkeypatch, tmp_path: Path
-) -> None:
+async def _outbound_document_failures(registered_plugin, monkeypatch, tmp_path: Path) -> None:
     from trueconf.exceptions import ApiErrorException, FileCaptionTooLongError
 
     monkeypatch.setenv("TRUECONF_USERNAME", "bot")
@@ -2606,9 +2553,7 @@ def test_inbound_document_download_cancellation_propagates_without_a_cached_path
     asyncio.run(_inbound_document_download_cancellation(registered_plugin, monkeypatch))
 
 
-async def _inbound_document_download_cancellation(
-    registered_plugin, monkeypatch
-) -> None:
+async def _inbound_document_download_cancellation(registered_plugin, monkeypatch) -> None:
     monkeypatch.setenv("TRUECONF_USERNAME", "bot")
     monkeypatch.setenv("TRUECONF_PASSWORD", "secret")
     sdk_handler = _capture_public_sdk_message_handler(monkeypatch)
@@ -2839,9 +2784,7 @@ async def _image_media_failures(registered_plugin, monkeypatch, tmp_path: Path) 
     bot.send_photo = failing_send_photo
     install_bot(monkeypatch, bot)
     adapter = create_adapter(registered_plugin)
-    adapter.set_authorization_check(
-        lambda user, _kind, _chat: user != "unauthorized@video.example.com"
-    )
+    adapter.set_authorization_check(lambda user, _kind, _chat: user != "unauthorized@video.example.com")
     events = []
     delivered = asyncio.Event()
 
@@ -3076,9 +3019,7 @@ async def _video_media_failures(registered_plugin, monkeypatch, tmp_path: Path) 
     bot.send_document = failing_send_document
     install_bot(monkeypatch, bot)
     adapter = create_adapter(registered_plugin)
-    adapter.set_authorization_check(
-        lambda user, _kind, _chat: user != "unauthorized@video.example.com"
-    )
+    adapter.set_authorization_check(lambda user, _kind, _chat: user != "unauthorized@video.example.com")
     events = []
     delivered = asyncio.Event()
 
@@ -3329,9 +3270,7 @@ async def _voice_media_failures(registered_plugin, monkeypatch, tmp_path: Path) 
     bot.send_document = failing_send_document
     install_bot(monkeypatch, bot)
     adapter = create_adapter(registered_plugin)
-    adapter.set_authorization_check(
-        lambda user, _kind, _chat: user != "unauthorized@video.example.com"
-    )
+    adapter.set_authorization_check(lambda user, _kind, _chat: user != "unauthorized@video.example.com")
     events = []
     delivered = asyncio.Event()
 
@@ -3449,9 +3388,7 @@ async def _supported_chat_type_mapping(registered_plugin, monkeypatch) -> None:
     install_bot(monkeypatch, bot)
     adapter = create_adapter(registered_plugin, require_mention=False)
     authorization_calls = []
-    adapter.set_authorization_check(
-        lambda user, kind, chat: authorization_calls.append((user, kind, chat)) or True
-    )
+    adapter.set_authorization_check(lambda user, kind, chat: authorization_calls.append((user, kind, chat)) or True)
     events = []
     delivered = asyncio.Event()
 
@@ -3495,9 +3432,13 @@ async def _supported_chat_type_mapping(registered_plugin, monkeypatch) -> None:
         ("CaseSensitive@Video.Example", "group", "GROUP-ID"),
         ("CaseSensitive@Video.Example", "channel", "CHANNEL-ID"),
     ]
-    assert [
-        (await adapter.get_chat_info(chat_id))["type"] for chat_id in chat_types
-    ] == ["dm", "group", "channel", "unknown", "unknown"]
+    assert [(await adapter.get_chat_info(chat_id))["type"] for chat_id in chat_types] == [
+        "dm",
+        "group",
+        "channel",
+        "unknown",
+        "unknown",
+    ]
     await adapter.disconnect()
 
 
@@ -3729,10 +3670,7 @@ def test_observed_context_is_limited_to_explicit_addressed_group_scope(
     )
     assert disabled._should_fetch_observed_context("observed-group", "group") is False
     assert zero_limit._should_fetch_observed_context("observed-group", "group") is False
-    assert (
-        implicit_scope._should_fetch_observed_context("observed-group", "group")
-        is False
-    )
+    assert implicit_scope._should_fetch_observed_context("observed-group", "group") is False
 
 
 def test_observed_context_fetches_since_the_previous_authorized_mention(
@@ -3782,9 +3720,7 @@ async def _observed_context_history(registered_plugin, monkeypatch) -> None:
 
     async def get_chat_history(requested_chat_id, *, count, from_message_id):
         history_calls.append((requested_chat_id, count, from_message_id))
-        return SimpleNamespace(
-            messages=[long_text, trigger, kept, old, own, blocked, boundary]
-        )
+        return SimpleNamespace(messages=[long_text, trigger, kept, old, own, blocked, boundary])
 
     async def get_user_display_name(user_id):
         return SimpleNamespace(display_name=user_id)
@@ -3798,9 +3734,7 @@ async def _observed_context_history(registered_plugin, monkeypatch) -> None:
         observe_unmentioned_group_messages=True,
         observe_context_limit=20,
     )
-    adapter.set_authorization_check(
-        lambda user, _kind, _chat: user in {"alice", "moderator"}
-    )
+    adapter.set_authorization_check(lambda user, _kind, _chat: user in {"alice", "moderator"})
     events = []
     delivered = asyncio.Event()
 
@@ -3817,9 +3751,7 @@ async def _observed_context_history(registered_plugin, monkeypatch) -> None:
     assert len(events) == 1
     context = events[0].channel_context
     assert context is not None
-    assert context.startswith(
-        "[Recent TrueConf group messages - context only, not requests]\n"
-    )
+    assert context.startswith("[Recent TrueConf group messages - context only, not requests]\n")
     assert "[alice] Keep <b>HTML</b><br>and line breaks" in context
     assert f"[alice] {'x' * 1000}" in context
     assert "old context" not in context
@@ -3932,9 +3864,7 @@ def test_unauthorized_trigger_does_not_fetch_observed_context(
     registered_plugin,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    asyncio.run(
-        _unauthorized_trigger_does_not_fetch_history(registered_plugin, monkeypatch)
-    )
+    asyncio.run(_unauthorized_trigger_does_not_fetch_history(registered_plugin, monkeypatch))
 
 
 async def _unauthorized_trigger_does_not_fetch_history(
@@ -4125,8 +4055,8 @@ def test_clarify_buttons_resolve_the_selected_choice(
 
 
 async def _clarify_buttons_resolve(registered_plugin, monkeypatch) -> None:
-    from trueconf.types.responses.send_message_response import SendMessageResponse
     from tools import clarify_gateway
+    from trueconf.types.responses.send_message_response import SendMessageResponse
 
     monkeypatch.setenv("TRUECONF_USERNAME", "bot")
     monkeypatch.setenv("TRUECONF_PASSWORD", "secret")
@@ -4194,8 +4124,8 @@ def test_clarify_button_without_command_id_resolves_without_ack(
 
 
 async def _clarify_without_command_id(registered_plugin, monkeypatch) -> None:
-    from trueconf.types.responses.send_message_response import SendMessageResponse
     from tools import clarify_gateway
+    from trueconf.types.responses.send_message_response import SendMessageResponse
 
     monkeypatch.setenv("TRUECONF_USERNAME", "bot")
     monkeypatch.setenv("TRUECONF_PASSWORD", "secret")
@@ -4257,8 +4187,8 @@ def test_exec_approval_button_resolves_only_in_its_source_chat(
 
 
 async def _exec_approval_button_chat_binding(registered_plugin, monkeypatch) -> None:
-    from trueconf.types.responses.send_message_response import SendMessageResponse
     from tools import approval
+    from trueconf.types.responses.send_message_response import SendMessageResponse
 
     monkeypatch.setenv("TRUECONF_USERNAME", "bot")
     monkeypatch.setenv("TRUECONF_PASSWORD", "secret")
@@ -4285,9 +4215,7 @@ async def _exec_approval_button_chat_binding(registered_plugin, monkeypatch) -> 
         lambda session_key, choice: resolved.append((session_key, choice)) or 1,
     )
 
-    result = await adapter.send_exec_approval(
-        "chat-1", "deploy", "session-1", allow_permanent=False
-    )
+    result = await adapter.send_exec_approval("chat-1", "deploy", "session-1", allow_permanent=False)
     assert result.success is True
     buttons = [button for row in sends[0]["buttons"].buttons for button in row]
     assert [button.text for button in buttons] == [
@@ -4318,9 +4246,7 @@ def test_send_splits_long_content_into_chained_continuations(
     registered_plugin,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    asyncio.run(
-        _send_long_content_splits_into_continuations(registered_plugin, monkeypatch)
-    )
+    asyncio.run(_send_long_content_splits_into_continuations(registered_plugin, monkeypatch))
 
 
 async def _send_long_content_splits_into_continuations(
@@ -4369,9 +4295,7 @@ def test_edit_splits_long_content_into_chained_continuations(
     registered_plugin,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    asyncio.run(
-        _edit_long_content_splits_into_continuations(registered_plugin, monkeypatch)
-    )
+    asyncio.run(_edit_long_content_splits_into_continuations(registered_plugin, monkeypatch))
 
 
 async def _edit_long_content_splits_into_continuations(
@@ -4473,11 +4397,7 @@ def test_standalone_splits_long_text_into_chained_messages(
     registered_plugin,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    asyncio.run(
-        _standalone_split_long_text_into_chained_messages(
-            registered_plugin, monkeypatch
-        )
-    )
+    asyncio.run(_standalone_split_long_text_into_chained_messages(registered_plugin, monkeypatch))
 
 
 async def _standalone_split_long_text_into_chained_messages(
@@ -4549,7 +4469,8 @@ async def _next_button_id_unique(registered_plugin, monkeypatch) -> None:
     first = adapter._next_button_id("approval")
     second = adapter._next_button_id("approval")
     assert first != second
-    assert ":" not in first and ":" not in second
+    assert ":" not in first
+    assert ":" not in second
     await adapter.disconnect()
 
 
@@ -4561,8 +4482,8 @@ def test_clarify_negative_index_is_invalid_choice(
 
 
 async def _clarify_negative_index(registered_plugin, monkeypatch) -> None:
-    from trueconf.types.responses.send_message_response import SendMessageResponse
     from tools import clarify_gateway
+    from trueconf.types.responses.send_message_response import SendMessageResponse
 
     monkeypatch.setenv("TRUECONF_USERNAME", "bot")
     monkeypatch.setenv("TRUECONF_PASSWORD", "secret")
@@ -4624,12 +4545,12 @@ def test_group_clarify_falls_back_to_numbered_text_prompt(
 
 
 async def _group_clarify_text_fallback(registered_plugin, monkeypatch) -> None:
+    from tools import clarify_gateway
     from trueconf.enums import EnvelopeAuthorType, MessageType
     from trueconf.types import Message
     from trueconf.types.author_box import EnvelopeAuthor, EnvelopeBox
     from trueconf.types.content.text import TextContent
     from trueconf.types.responses.send_message_response import SendMessageResponse
-    from tools import clarify_gateway
 
     monkeypatch.setenv("TRUECONF_USERNAME", "bot")
     monkeypatch.setenv("TRUECONF_PASSWORD", "secret")
@@ -4707,12 +4628,12 @@ def test_group_approval_falls_back_to_text_and_number_reply_resolves(
 
 
 async def _group_approval_text_fallback(registered_plugin, monkeypatch) -> None:
+    from tools import approval
     from trueconf.enums import EnvelopeAuthorType, MessageType
     from trueconf.types import Message
     from trueconf.types.author_box import EnvelopeAuthor, EnvelopeBox
     from trueconf.types.content.text import TextContent
     from trueconf.types.responses.send_message_response import SendMessageResponse
-    from tools import approval
 
     monkeypatch.setenv("TRUECONF_USERNAME", "bot")
     monkeypatch.setenv("TRUECONF_PASSWORD", "secret")
@@ -4745,9 +4666,7 @@ async def _group_approval_text_fallback(registered_plugin, monkeypatch) -> None:
     adapter.set_authorization_check(lambda _user, _kind, _chat: True)
     assert await adapter.connect() is True
 
-    result = await adapter.send_exec_approval(
-        "group-1", "echo approval-test", "session-g", metadata={}
-    )
+    result = await adapter.send_exec_approval("group-1", "echo approval-test", "session-g", metadata={})
     assert result.success is True
     assert len(sends) == 1
     assert "buttons" not in sends[0]
@@ -4937,9 +4856,7 @@ async def _status_bubble_dedup(registered_plugin, monkeypatch) -> None:
 
     async def edit_message(**kwargs):
         edits.append(kwargs)
-        return EditMessageResponse(
-            message_id=kwargs["message_id"], timestamp=1_788_000_000_124
-        )
+        return EditMessageResponse(message_id=kwargs["message_id"], timestamp=1_788_000_000_124)
 
     bot.send_message = send_message
     bot.edit_message = edit_message
@@ -4949,9 +4866,7 @@ async def _status_bubble_dedup(registered_plugin, monkeypatch) -> None:
     assert await adapter.connect() is True
 
     first = await adapter.send_or_update_status("chat-1", "compress", "💭 compressing…")
-    second = await adapter.send_or_update_status(
-        "chat-1", "compress", "💭 compressing (50%)"
-    )
+    second = await adapter.send_or_update_status("chat-1", "compress", "💭 compressing (50%)")
 
     assert first.success is True
     assert second.success is True
