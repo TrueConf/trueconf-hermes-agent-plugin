@@ -1215,3 +1215,49 @@ def test_distributed_plugin_passes_install_security_scan(tmp_path: Path) -> None
     )
     allowed, reason = should_allow_plugin_install(result, force=False)
     assert allowed is True, f"{reason}\n{format_scan_report(result)}"
+
+
+def test_adapter_reads_profile_env_when_secret_scope_is_unscoped(
+    tmp_path: Path,
+) -> None:
+    """Model a multiplexed gateway startup: ``platform_registry.create_adapter`` runs
+    ``validate_config``/``adapter_factory`` with no per-turn secret scope installed, and a
+    bare ``agent.secret_scope.get_secret`` fails closed there. The adapter must read the
+    profile's own values through the platform-adapter fallback instead."""
+    result = run_hermes_probe(
+        tmp_path,
+        """
+import json
+import os
+
+os.environ["TRUECONF_SERVER"] = "trueconf.example"
+os.environ["TRUECONF_USERNAME"] = "hermes-bot"
+os.environ["TRUECONF_PASSWORD"] = "secret-password"
+
+import agent.secret_scope
+
+
+def _fail_closed(name, default=None, **kwargs):
+    raise agent.secret_scope.UnscopedSecretError(name)
+
+
+agent.secret_scope.get_secret = _fail_closed
+
+from hermes_cli.plugins import discover_plugins
+from gateway.config import PlatformConfig
+from gateway.platform_registry import platform_registry
+
+discover_plugins(force=True)
+entry = platform_registry.get("trueconf")
+adapter = platform_registry.create_adapter("trueconf", PlatformConfig())
+print(json.dumps({
+    "created": adapter is not None,
+    "server": getattr(adapter, "server", None) if adapter else None,
+}))
+""",
+    )
+    assert result.returncode == 0, result.stderr
+    assert json.loads(result.stdout) == {
+        "created": True,
+        "server": "trueconf.example",
+    }, result.stderr

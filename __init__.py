@@ -325,13 +325,37 @@ def _config_error(config: Any) -> str | None:
 
 
 def _get_secret(name: str, default: str) -> str | None:
-    """Use Hermes' scope-aware public accessor when Hermes is available."""
+    """Use Hermes' scope-aware public accessor when Hermes is available.
+
+    Newer multiplexed gateways fail closed on a bare ``agent.secret_scope.get_secret``
+    outside a per-turn secret scope, and ``platform_registry.create_adapter`` runs
+    ``validate_config``/``adapter_factory`` at startup without one. The platform-adapter
+    accessor ``gateway.platforms._shared.get_scoped_secret`` is the sanctioned read path:
+    an unscoped default profile falls back to ``os.environ``, and ``external_fallback``
+    consults the profile's own secret store for startup gates. Hermes 0.21.x predates
+    that helper, so the bare accessor is kept with the same fail-open fallback.
+    """
 
     try:
-        from agent.secret_scope import get_secret
+        from gateway.platforms._shared import get_scoped_secret
+    except ImportError:
+        pass
+    else:
+        import inspect
+
+        if "external_fallback" in inspect.signature(get_scoped_secret).parameters:
+            return get_scoped_secret(name, default, external_fallback=True)
+        return get_scoped_secret(name, default)
+    try:
+        from agent.secret_scope import UnscopedSecretError, get_secret
     except ImportError:
         return os.getenv(name, default)
-    return get_secret(name, default)
+    try:
+        return get_secret(name, default)
+    except UnscopedSecretError:
+        # Multiplexed gateways fail closed outside a per-turn scope; the profile's
+        # own bridged values live in ``os.environ`` there.
+        return os.getenv(name, default)
 
 
 def _is_connected(config: Any) -> bool:

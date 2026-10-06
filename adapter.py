@@ -13,7 +13,6 @@ from collections import OrderedDict
 from datetime import datetime, timezone
 from typing import Any
 
-from agent.secret_scope import get_secret
 from gateway.config import Platform
 from gateway.platforms.base import (
     BasePlatformAdapter,
@@ -50,6 +49,7 @@ from trueconf.exceptions import (
 from trueconf.types import FSInputFile
 from trueconf.utils import ChatActivitySender, safe_split_text
 
+from . import _get_secret
 from .formatter import render_trueconf_html
 
 _LOGGER = logging.getLogger(__name__)
@@ -98,9 +98,9 @@ class TrueConfAdapter(BasePlatformAdapter):
         super().__init__(config=config, platform=Platform("trueconf"))
         extra = getattr(config, "extra", {}) or {}
 
-        self.server = str(get_secret("TRUECONF_SERVER", "") or extra.get("server", ""))
-        self.username = str(get_secret("TRUECONF_USERNAME", "") or "")
-        self.password = str(get_secret("TRUECONF_PASSWORD", "") or "")
+        self.server = str(_get_secret("TRUECONF_SERVER", "") or extra.get("server", ""))
+        self.username = str(_get_secret("TRUECONF_USERNAME", "") or "")
+        self.password = str(_get_secret("TRUECONF_PASSWORD", "") or "")
         self.port = int(extra.get("port", 443))
         self.https = extra.get("https", True)
         self.verify_ssl = extra.get("verify_ssl", True)
