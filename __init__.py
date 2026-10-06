@@ -12,9 +12,9 @@ from typing import Any
 from packaging.version import InvalidVersion, Version
 
 
-MINIMUM_SDK_VERSION = "1.5.0"
+MINIMUM_SDK_VERSION = "1.5.3"
 MAXIMUM_SDK_VERSION = "2"
-SDK_REQUIREMENT = "python-trueconf-bot>=1.5.0,<2"
+SDK_REQUIREMENT = "python-trueconf-bot>=1.5.3,<2"
 MINIMUM_MISTUNE_VERSION = "3"
 MAXIMUM_MISTUNE_VERSION = "4"
 MISTUNE_REQUIREMENT = "mistune>=3,<4"

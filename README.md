@@ -83,7 +83,7 @@ You will need:
 > Run the commands in this guide in a terminal on the computer running Hermes.
 > Do not send them to the bot in TrueConf.
 
-The connection to TrueConf uses `python-trueconf-bot` version `>=1.5.0,<2`.
+The connection to TrueConf uses `python-trueconf-bot` version `>=1.5.3,<2`.
 Hermes normally installs the required dependencies automatically when the
 gateway starts.[^dependencies]
 
@@ -417,7 +417,7 @@ Known limitations to keep in mind:
 | Limitation | What it means |
 |---|---|
 | Only Hermes v0.21.0 has been tested | Compatibility with other Hermes versions is not guaranteed. |
-| SDK `>=1.5.0,<2` | Earlier `python-trueconf-bot` versions and the 2.x series are unsupported. |
+| SDK `>=1.5.3,<2` | Earlier `python-trueconf-bot` versions and the 2.x series are unsupported. |
 | Outgoing video and voice messages | Delivered as file attachments rather than dedicated TrueConf video or voice messages. |
 | Maximum 4096 visible characters per message | Long replies are automatically split into a chain. Attachment captions are not split. |
 | Media-only delivery without text | Hermes v0.21.0 rejects it before calling a third-party standalone sender. The plugin's own handler supports it. |
@@ -454,13 +454,13 @@ hermes logs gateway -n 100
 Run this command **in the same Python environment that runs Hermes**:
 
 ```bash
-python -m pip install "mistune>=3,<4" "python-trueconf-bot>=1.5.0,<2"
+python -m pip install "mistune>=3,<4" "python-trueconf-bot>=1.5.3,<2"
 ```
 
 If Hermes was installed through `uv tool`, inject the dependencies into its environment:
 
 ```bash
-uv tool inject hermes-agent "mistune>=3,<4" "python-trueconf-bot>=1.5.0,<2"
+uv tool inject hermes-agent "mistune>=3,<4" "python-trueconf-bot>=1.5.3,<2"
 ```
 
 After installation, restart the gateway and repeat the plugin check.

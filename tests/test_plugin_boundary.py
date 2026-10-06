@@ -11,7 +11,7 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 HERMES_ROOT = PROJECT_ROOT / "hermes-agent"
-MINIMUM_SDK_VERSION = "1.5.0"
+MINIMUM_SDK_VERSION = "1.5.3"
 
 
 def test_pyproject_matches_plugin_runtime_and_release_contract() -> None:
@@ -26,11 +26,11 @@ def test_pyproject_matches_plugin_runtime_and_release_contract() -> None:
 
     assert project_data["project"]["version"] == manifest["version"] == "1.0.1"
     assert project_data["project"]["requires-python"] == ">=3.11,<3.15"
-    assert "python-trueconf-bot>=1.5.0,<2" in project_data["project"]["dependencies"]
+    assert "python-trueconf-bot>=1.5.3,<2" in project_data["project"]["dependencies"]
     assert "mistune>=3,<4" in project_data["project"]["dependencies"]
     assert manifest["python_dependencies"] == [
         "mistune>=3,<4",
-        "python-trueconf-bot>=1.5.0,<2",
+        "python-trueconf-bot>=1.5.3,<2",
     ]
     assert "hermes-agent==0.21.0" not in project_data["dependency-groups"]["dev"]
     assert project_data["tool"]["uv"]["package"] is False
@@ -145,7 +145,7 @@ print(json.dumps({
         "label": "TrueConf",
         "source": "plugin",
         "required_env": ["TRUECONF_SERVER", "TRUECONF_USERNAME", "TRUECONF_PASSWORD"],
-        "install_hint": "Install mistune>=3,<4 and python-trueconf-bot>=1.5.0,<2",
+        "install_hint": "Install mistune>=3,<4 and python-trueconf-bot>=1.5.3,<2",
         "allowed_users_env": "TRUECONF_ALLOWED_USERS",
         "allow_all_env": "TRUECONF_ALLOW_ALL_USERS",
         "max_message_length": 4096,
@@ -293,7 +293,7 @@ print(json.dumps({
     assert result.returncode == 0, result.stderr
     assert json.loads(result.stdout) == {
         "available": False,
-        "install_hint": "Install mistune>=3,<4 and python-trueconf-bot>=1.5.0,<2",
+        "install_hint": "Install mistune>=3,<4 and python-trueconf-bot>=1.5.3,<2",
         "has_installer": True,
         "sdk_imported": False,
     }
@@ -367,12 +367,51 @@ print(json.dumps({
         "installed": True,
         "calls": [
             {
-                "specs": ["mistune>=3,<4", "python-trueconf-bot>=1.5.0,<2"],
+                "specs": ["mistune>=3,<4", "python-trueconf-bot>=1.5.3,<2"],
                 "timeout": 300,
             }
         ],
     }
 
+
+def test_first_start_refreshes_typing_extensions_after_lazy_install(
+    tmp_path: Path,
+) -> None:
+    result = run_hermes_probe(
+        tmp_path,
+        """
+import json
+from types import SimpleNamespace
+import typing_extensions
+from hermes_cli.plugins import discover_plugins
+from gateway.config import PlatformConfig
+from gateway.platform_registry import platform_registry
+import tools.lazy_deps
+
+discover_plugins(force=True)
+entry = platform_registry.get("trueconf")
+# Model Hermes holding the pre-upgrade module while pip has updated its file.
+del typing_extensions.sentinel
+calls = []
+def install_specs(specs, *, timeout):
+    calls.append(specs)
+    return SimpleNamespace(ok=True, reason="")
+tools.lazy_deps.install_specs = install_specs
+entry.validate_config = lambda config: True
+adapter = platform_registry.create_adapter("trueconf", PlatformConfig())
+print(json.dumps({
+    "created": adapter is not None,
+    "sentinel_available": hasattr(typing_extensions, "sentinel"),
+    "installs": len(calls),
+}))
+""",
+    )
+    assert result.returncode == 0, result.stderr
+    assert json.loads(result.stdout) == {
+        "created": True,
+        "sentinel_available": True,
+        "installs": 1,
+    }, result.stderr
 
 
 def test_outdated_sdk_is_reported_as_unavailable(tmp_path: Path) -> None:
@@ -402,7 +441,7 @@ print(json.dumps({
     assert result.returncode == 0, result.stderr
     assert json.loads(result.stdout) == {
         "available": False,
-        "install_hint": "Install mistune>=3,<4 and python-trueconf-bot>=1.5.0,<2",
+        "install_hint": "Install mistune>=3,<4 and python-trueconf-bot>=1.5.3,<2",
     }
 
 
@@ -461,7 +500,7 @@ print(json.dumps({
     assert result.returncode == 0, result.stderr
     assert json.loads(result.stdout) == {
         "available": False,
-        "install_hint": "Install mistune>=3,<4 and python-trueconf-bot>=1.5.0,<2",
+        "install_hint": "Install mistune>=3,<4 and python-trueconf-bot>=1.5.3,<2",
     }
 
 

@@ -13,7 +13,7 @@ tags:
   - trueconf
 python_dependencies:
   - mistune>=3,<4
-  - python-trueconf-bot>=1.5.0,<2
+  - python-trueconf-bot>=1.5.3,<2
 requires_env:
   - name: TRUECONF_SERVER
     description: TrueConf Server hostname or address.
