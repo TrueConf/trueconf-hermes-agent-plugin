@@ -24,7 +24,8 @@ from gateway.platforms.base import (
     validate_inbound_media_size,
 )
 from gateway.platforms.base import MessageType as HermesMessageType
-from gateway.status import acquire_scoped_lock, release_scoped_lock
+from gateway.status import acquire_scoped_lock
+from gateway.status_scoped_locks import release_scoped_lock
 from trueconf import (
     Bot,
     Dispatcher,
